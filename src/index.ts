@@ -12,7 +12,7 @@ dotenv.config();
 
 const commonninjaAccountAccessKey =
   process.env.COMMONNINJA_ACCOUNT_ACCESS_TOKEN ||
-  ""; // TODO: Remove this
+  "";
 const cnApiBaseUrl = "https://api.commoninja.com/platform/api/v1";
 
 // Create server instance

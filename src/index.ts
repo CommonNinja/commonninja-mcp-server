@@ -119,8 +119,8 @@ server.tool(
   }
 );
 
-// to support multiple simultaneous connections we have a lookup object from
-// sessionId to transport
+// SSE Server
+
 // const transports: {[sessionId: string]: SSEServerTransport} = {};
 // const app = express();
 
@@ -144,6 +144,10 @@ server.tool(
 // });
 
 // app.listen(process.env.PORT || 3000);
+
+// ------------------------------------------------------------------------------------------------
+
+// STDIO Server
 
 async function main() {
   const transport = new StdioServerTransport();

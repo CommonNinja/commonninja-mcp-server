@@ -1,0 +1,35 @@
+{
+  "name": "commonninja-mcp-server",
+  "version": "1.0.0",
+  "description": "Common Ninja MCP Server",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "commonninja": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "npm run build && node build/index.js",
+    "debug": "npx @modelcontextprotocol/inspector node build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "lodash": "^4.17.21",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3"
+  }
+}

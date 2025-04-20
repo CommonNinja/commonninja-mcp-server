@@ -42,7 +42,7 @@ server.tool(
 // Get widget schema by type
 server.tool(
   "commonninja_get_widget_schema",
-  "Get widget schema by type before updating widget data",
+  "Get widget schema by type before updating widget data. Always follow the schema when updating widget data, don't add any new fields because validation will fail.",
   {
     widgetType: z.string(),
   },

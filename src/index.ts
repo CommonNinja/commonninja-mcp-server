@@ -107,7 +107,7 @@ server.tool(
     const editorUrl = await CommonNinjaApi.getWidgetEditorUrl(widgetId);
 
     return {
-      content: [{ type: "text", text: editorUrl }],
+      content: [{ type: "text", text: JSON.stringify(editorUrl) }],
     };
   }
 );
@@ -121,7 +121,7 @@ server.tool(
     const embedCode = await CommonNinjaApi.getWidgetEmbedCode(widgetId);
 
     return {
-      content: [{ type: "text", text: embedCode }],
+      content: [{ type: "text", text: JSON.stringify(embedCode) }],
     };
   }
 );

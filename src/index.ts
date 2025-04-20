@@ -2,17 +2,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
-import axios from "axios";
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import merge from "lodash/merge.js";
+import { CommonNinjaApi } from "./services/commonNinjaApi.js";
 
 // Dotenv
 dotenv.config();
-
-const commonninjaAccountAccessKey =
-  process.env.COMMONNINJA_ACCOUNT_ACCESS_TOKEN || "";
-const cnApiBaseUrl = "https://api.commoninja.com/platform/api/v1";
 
 // Create server instance
 const server = new McpServer({
@@ -24,6 +20,7 @@ const server = new McpServer({
   },
 });
 
+// Get widget data by ID
 server.tool(
   "commonninja_get_widget",
   "Get widget data by ID",
@@ -31,13 +28,7 @@ server.tool(
     widgetId: z.string(),
   },
   async ({ widgetId }) => {
-    const response = await axios.get(`${cnApiBaseUrl}/widgets/${widgetId}`, {
-      headers: {
-        "CN-API-Token": commonninjaAccountAccessKey,
-      },
-    });
-
-    const { type, data: widgetData } = response.data || {};
+    const { type, data: widgetData } = await CommonNinjaApi.getWidget(widgetId);
 
     return {
       content: [
@@ -48,6 +39,7 @@ server.tool(
   }
 );
 
+// Get widget schema by type
 server.tool(
   "commonninja_get_widget_schema",
   "Get widget schema by type before updating widget data",
@@ -55,14 +47,7 @@ server.tool(
     widgetType: z.string(),
   },
   async ({ widgetType }) => {
-    const { data: widgetSchema } = await axios.get(
-      `${cnApiBaseUrl}/widget-types/${widgetType}/schema`,
-      {
-        headers: {
-          "CN-API-Token": commonninjaAccountAccessKey,
-        },
-      }
-    );
+    const widgetSchema = await CommonNinjaApi.getWidgetSchema(widgetType);
 
     return {
       content: [{ type: "text", text: JSON.stringify(widgetSchema) }],
@@ -70,6 +55,7 @@ server.tool(
   }
 );
 
+// Update widget data
 server.tool(
   "commonninja_update_widget",
   "Merge current widget data with new partial widget data",
@@ -84,9 +70,6 @@ server.tool(
     }
 
     // Delete fields that are not allowed to be updated
-    // delete nextWidgetData.localization
-    // delete nextWidgetData.deviceRewrites
-    // delete nextWidgetData.colorScheme
     delete nextWidgetData.integrations;
     delete nextWidgetData.notifications;
     delete nextWidgetData.displayRules;
@@ -96,21 +79,7 @@ server.tool(
     // Deep clone new widget data with current widget data using lodash
     const mergedWidgetData = merge({}, currentWidgetData, nextWidgetData);
 
-    // console.log("mergedWidgetData", mergedWidgetData);
-
-    // Note: In a production implementation, we would:
-    // 1. Get the widget schema based on widget type
-    // 2. Validate the merged data against the schema
-    // For now, we'll proceed with the update using the merged data
-    await axios.put(
-      `${cnApiBaseUrl}/widgets/${widgetId}`,
-      { data: mergedWidgetData },
-      {
-        headers: {
-          "CN-API-Token": commonninjaAccountAccessKey,
-        },
-      }
-    );
+    await CommonNinjaApi.updateWidget(widgetId, mergedWidgetData);
 
     return {
       content: [{ type: "text", text: "Widget updated successfully" }],
@@ -118,39 +87,231 @@ server.tool(
   }
 );
 
-// SSE Server
+// List all widgets
+server.tool(
+  "commonninja_list_widgets",
+  "List all widgets in the account with pagination",
+  {
+    page: z.number().optional().default(1),
+    limit: z.number().optional().default(20),
+  },
+  async ({ page, limit }) => {
+    const widgets = await CommonNinjaApi.listWidgets(page, limit);
 
-// const transports: {[sessionId: string]: SSEServerTransport} = {};
-// const app = express();
+    return {
+      content: [
+        { type: "text", text: "Widgets List:" },
+        { type: "text", text: JSON.stringify(widgets, null, 2) },
+      ],
+    };
+  }
+);
 
-// app.get("/sse", async (_: Request, res: Response) => {
-//   const transport = new SSEServerTransport('/messages', res);
-//   transports[transport.sessionId] = transport;
-//   res.on("close", () => {
-//     delete transports[transport.sessionId];
-//   });
-//   await server.connect(transport);
-// });
+// Create a new widget
+server.tool(
+  "commonninja_create_widget",
+  "Create a new widget with the specified type and data",
+  {
+    widgetType: z.string(),
+    widgetData: z.object({}).passthrough(),
+  },
+  async ({ widgetType, widgetData }) => {
+    const result = await CommonNinjaApi.createWidget(widgetType, widgetData);
 
-// app.post("/messages", async (req: Request, res: Response) => {
-//   const sessionId = req.query.sessionId as string;
-//   const transport = transports[sessionId];
-//   if (transport) {
-//     await transport.handlePostMessage(req, res);
-//   } else {
-//     res.status(400).send('No transport found for sessionId');
-//   }
-// });
+    return {
+      content: [
+        { type: "text", text: "Widget created successfully:" },
+        { type: "text", text: JSON.stringify(result, null, 2) },
+      ],
+    };
+  }
+);
 
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//   console.log(`Server running at http://localhost:${port}`);
-// });
+// Delete a widget
+server.tool(
+  "commonninja_delete_widget",
+  "Delete a widget by ID",
+  {
+    widgetId: z.string(),
+  },
+  async ({ widgetId }) => {
+    await CommonNinjaApi.deleteWidget(widgetId);
 
-// ------------------------------------------------------------------------------------------------
+    return {
+      content: [{ type: "text", text: `Widget ${widgetId} deleted successfully` }],
+    };
+  }
+);
+
+// Get available widget types
+server.tool(
+  "commonninja_get_widget_types",
+  "Get a list of all available widget types",
+  {},
+  async () => {
+    const widgetTypes = await CommonNinjaApi.getWidgetTypes();
+
+    return {
+      content: [
+        { type: "text", text: "Available Widget Types:" },
+        { type: "text", text: JSON.stringify(widgetTypes, null, 2) },
+      ],
+    };
+  }
+);
+
+// PROJECT TOOLS
+
+// List all projects
+server.tool(
+  "commonninja_list_projects",
+  "List all projects with pagination",
+  {
+    page: z.number().optional().default(1),
+    limit: z.number().optional().default(20),
+  },
+  async ({ page, limit }) => {
+    const projects = await CommonNinjaApi.getProjects(page, limit);
+
+    return {
+      content: [
+        { type: "text", text: "Projects List:" },
+        { type: "text", text: JSON.stringify(projects, null, 2) },
+      ],
+    };
+  }
+);
+
+// Get project by ID
+server.tool(
+  "commonninja_get_project",
+  "Get project details by ID",
+  {
+    projectId: z.string(),
+  },
+  async ({ projectId }) => {
+    const project = await CommonNinjaApi.getProject(projectId);
+
+    return {
+      content: [
+        { type: "text", text: "Project Details:" },
+        { type: "text", text: JSON.stringify(project, null, 2) },
+      ],
+    };
+  }
+);
+
+// CRM TOOLS - READ ONLY
+
+// List all contacts
+server.tool(
+  "commonninja_project_list_contacts",
+  "List all project's contacts with pagination",
+  {
+    projectId: z.string(),
+    page: z.number().optional().default(1),
+    limit: z.number().optional().default(20),
+  },
+  async ({ projectId, page, limit }) => {
+    const contacts = await CommonNinjaApi.getContacts(projectId, page, limit);
+
+    return {
+      content: [
+        { type: "text", text: "Contacts List:" },
+        { type: "text", text: JSON.stringify(contacts, null, 2) },
+      ],
+    };
+  }
+);
+
+// Get contact by ID
+server.tool(
+  "commonninja_project_get_contact",
+  "Get project's contact details by ID",
+  {
+    projectId: z.string(),
+    contactId: z.string(),
+  },
+  async ({ projectId, contactId }) => {
+    const contact = await CommonNinjaApi.getContact(projectId, contactId);
+
+    return {
+      content: [
+        { type: "text", text: "Contact Details:" },
+        { type: "text", text: JSON.stringify(contact, null, 2) },
+      ],
+    };
+  }
+);
+
+// List all submissions
+server.tool(
+  "commonninja_project_list_submissions",
+  "List all project's submissions with pagination",
+  {
+    projectId: z.string(),
+    page: z.number().optional().default(1),
+    limit: z.number().optional().default(20),
+    widgetId: z.string().optional().default(""),
+  },
+  async ({ projectId, page, limit, widgetId }) => {
+    const submissions = await CommonNinjaApi.getSubmissions(projectId, page, limit, widgetId);
+
+    return {
+      content: [
+        { type: "text", text: "Submissions List:" },
+        { type: "text", text: JSON.stringify(submissions, null, 2) },
+      ],
+    };
+  }
+);
+
+// Get submission by ID
+server.tool(
+  "commonninja_project_get_submission",
+  "Get project's submission details by ID",
+  {
+    projectId: z.string(),
+    submissionId: z.string(),
+  },
+  async ({ projectId, submissionId }) => {
+    const submission = await CommonNinjaApi.getSubmission(projectId, submissionId);
+
+    return {
+      content: [
+        { type: "text", text: "Submission Details:" },
+        { type: "text", text: JSON.stringify(submission, null, 2) },
+      ],
+    };
+  }
+);
+
+// ANALYTICS TOOLS - WIDGET LEVEL ONLY
+
+// Get widget analytics
+server.tool(
+  "commonninja_get_widget_analytics",
+  "Get analytics data for a specific widget",
+  {
+    widgetId: z.string(),
+    from: z.string().optional().default(""),
+    to: z.string().optional().default(""),
+    breakdown: z.enum(["day", "week", "month"]).optional().default("day"),
+    events: z.array(z.string()).optional().default([]),
+  },
+  async ({ widgetId, from, to, breakdown, events }) => {
+    const analytics = await CommonNinjaApi.getWidgetAnalytics(widgetId, from, to, breakdown, events);
+
+    return {
+      content: [
+        { type: "text", text: `Analytics for widget ${widgetId} (from: ${from}, to: ${to}, breakdown: ${breakdown}, events: ${events}):` },
+        { type: "text", text: JSON.stringify(analytics, null, 2) },
+      ],
+    };
+  }
+);
 
 // STDIO Server
-
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

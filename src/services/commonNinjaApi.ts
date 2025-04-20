@@ -40,10 +40,11 @@ export const CommonNinjaApi = {
     page = 1,
     limit = 20,
     projectId: string = "",
-    name: string = ""
+    search: string = "",
+    type: string = ""
   ) {
     const response = await apiClient.get("/widgets", {
-      params: { page, limit, projectId, name },
+      params: { page, limit, projectId, search, type },
     });
     return response.data;
   },

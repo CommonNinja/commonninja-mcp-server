@@ -95,14 +95,16 @@ server.tool(
     page: z.number().optional().default(1),
     limit: z.number().optional().default(20),
     projectId: z.string().optional().default(""),
-    name: z.string().optional().default(""),
+    search: z.string().optional().default(""),
+    type: z.string().optional().default(""),
   },
-  async ({ page, limit, projectId, name }) => {
+  async ({ page, limit, projectId, search, type }) => {
     const widgets = await CommonNinjaApi.listWidgets(
       page,
       limit,
       projectId,
-      name
+      search,
+      type
     );
 
     return {

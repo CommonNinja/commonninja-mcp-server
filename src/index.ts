@@ -70,9 +70,9 @@ server.tool(
     }
 
     // Delete fields that are not allowed to be updated
+    // delete nextWidgetData.displayRules;
     delete nextWidgetData.integrations;
     delete nextWidgetData.notifications;
-    delete nextWidgetData.displayRules;
     delete nextWidgetData.emailSettings;
     delete nextWidgetData.payments;
 
@@ -143,23 +143,23 @@ server.tool(
   }
 );
 
-// Delete a widget
-server.tool(
-  "commonninja_delete_widget",
-  "Delete a widget by ID",
-  {
-    widgetId: z.string(),
-  },
-  async ({ widgetId }) => {
-    await CommonNinjaApi.deleteWidget(widgetId);
+// Delete a widget - For now, we don't want to delete widgets
+// server.tool(
+//   "commonninja_delete_widget",
+//   "Delete a widget by ID",
+//   {
+//     widgetId: z.string(),
+//   },
+//   async ({ widgetId }) => {
+//     await CommonNinjaApi.deleteWidget(widgetId);
 
-    return {
-      content: [
-        { type: "text", text: `Widget ${widgetId} deleted successfully` },
-      ],
-    };
-  }
-);
+//     return {
+//       content: [
+//         { type: "text", text: `Widget ${widgetId} deleted successfully` },
+//       ],
+//     };
+//   }
+// );
 
 // Get available widget types
 server.tool(

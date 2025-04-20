@@ -36,19 +36,36 @@ export const CommonNinjaApi = {
   },
 
   // Widget listing operations
-  async listWidgets(page = 1, limit = 20) {
+  async listWidgets(
+    page = 1,
+    limit = 20,
+    projectId: string = "",
+    name: string = ""
+  ) {
     const response = await apiClient.get("/widgets", {
-      params: { page, limit },
+      params: { page, limit, projectId, name },
     });
     return response.data;
   },
 
   // Widget creation
-  async createWidget(widgetType: string, widgetData: any) {
-    const response = await apiClient.post("/widgets", {
+  async createWidget(
+    widgetType: string,
+    widgetData: any,
+    name: string = "",
+    projectId: string = ""
+  ) {
+    const data: any = {
       type: widgetType,
       data: widgetData,
-    });
+      name,
+      status: "draft",
+    };
+    // Optional
+    if (projectId) {
+      data.projectId = projectId;
+    }
+    const response = await apiClient.post("/widgets", data);
     return response.data;
   },
 

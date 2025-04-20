@@ -94,9 +94,16 @@ server.tool(
   {
     page: z.number().optional().default(1),
     limit: z.number().optional().default(20),
+    projectId: z.string().optional().default(""),
+    name: z.string().optional().default(""),
   },
-  async ({ page, limit }) => {
-    const widgets = await CommonNinjaApi.listWidgets(page, limit);
+  async ({ page, limit, projectId, name }) => {
+    const widgets = await CommonNinjaApi.listWidgets(
+      page,
+      limit,
+      projectId,
+      name
+    );
 
     return {
       content: [
@@ -114,9 +121,16 @@ server.tool(
   {
     widgetType: z.string(),
     widgetData: z.object({}).passthrough(),
+    name: z.string().optional().default("My Widget"),
+    projectId: z.string().optional().default(""),
   },
-  async ({ widgetType, widgetData }) => {
-    const result = await CommonNinjaApi.createWidget(widgetType, widgetData);
+  async ({ widgetType, widgetData, name, projectId }) => {
+    const result = await CommonNinjaApi.createWidget(
+      widgetType,
+      widgetData,
+      name,
+      projectId
+    );
 
     return {
       content: [
@@ -138,7 +152,9 @@ server.tool(
     await CommonNinjaApi.deleteWidget(widgetId);
 
     return {
-      content: [{ type: "text", text: `Widget ${widgetId} deleted successfully` }],
+      content: [
+        { type: "text", text: `Widget ${widgetId} deleted successfully` },
+      ],
     };
   }
 );
@@ -255,7 +271,12 @@ server.tool(
     widgetId: z.string().optional().default(""),
   },
   async ({ projectId, page, limit, widgetId }) => {
-    const submissions = await CommonNinjaApi.getSubmissions(projectId, page, limit, widgetId);
+    const submissions = await CommonNinjaApi.getSubmissions(
+      projectId,
+      page,
+      limit,
+      widgetId
+    );
 
     return {
       content: [
@@ -275,7 +296,10 @@ server.tool(
     submissionId: z.string(),
   },
   async ({ projectId, submissionId }) => {
-    const submission = await CommonNinjaApi.getSubmission(projectId, submissionId);
+    const submission = await CommonNinjaApi.getSubmission(
+      projectId,
+      submissionId
+    );
 
     return {
       content: [
@@ -300,11 +324,20 @@ server.tool(
     events: z.array(z.string()).optional().default([]),
   },
   async ({ widgetId, from, to, breakdown, events }) => {
-    const analytics = await CommonNinjaApi.getWidgetAnalytics(widgetId, from, to, breakdown, events);
+    const analytics = await CommonNinjaApi.getWidgetAnalytics(
+      widgetId,
+      from,
+      to,
+      breakdown,
+      events
+    );
 
     return {
       content: [
-        { type: "text", text: `Analytics for widget ${widgetId} (from: ${from}, to: ${to}, breakdown: ${breakdown}, events: ${events}):` },
+        {
+          type: "text",
+          text: `Analytics for widget ${widgetId} (from: ${from}, to: ${to}, breakdown: ${breakdown}, events: ${events}):`,
+        },
         { type: "text", text: JSON.stringify(analytics, null, 2) },
       ],
     };

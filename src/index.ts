@@ -158,7 +158,7 @@ server.tool(
 // Create a new widget
 server.tool(
   "commonninja_create_widget",
-  "Create a new widget with the specified type and data",
+  "Create a new widget with the specified type and data. Optional props with an object type under `styles` should be empty or populated objects.",
   {
     widgetType: z.string(),
     widgetData: z.object({}).passthrough(),

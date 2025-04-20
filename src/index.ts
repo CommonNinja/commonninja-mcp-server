@@ -4,7 +4,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import merge from "lodash/merge.js";
+import mergeWith from "lodash/mergeWith.js";
 import { CommonNinjaApi } from "./services/commonNinjaApi.js";
 
 // Dotenv
@@ -58,7 +58,7 @@ server.tool(
 // Update widget data
 server.tool(
   "commonninja_update_widget",
-  "Merge current widget data with new partial widget data",
+  "Merge current widget data with new partial widget data. For arrays, always return the new array.",
   {
     widgetId: z.string(),
     currentWidgetData: z.object({}).passthrough(),
@@ -77,7 +77,13 @@ server.tool(
     delete nextWidgetData.payments;
 
     // Deep clone new widget data with current widget data using lodash
-    const mergedWidgetData = merge({}, currentWidgetData, nextWidgetData);
+    const customMerge = (objValue: any, srcValue: any) => {
+      if (Array.isArray(srcValue)) {
+        // Combine arrays, avoid duplicates (optional)
+        return srcValue;
+      }
+    };
+    const mergedWidgetData = mergeWith({}, currentWidgetData, nextWidgetData, customMerge);
 
     await CommonNinjaApi.updateWidget(widgetId, mergedWidgetData);
 

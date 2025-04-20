@@ -24,7 +24,9 @@ export const CommonNinjaApi = {
   },
 
   async getWidgetSchema(widgetType: string) {
-    const response = await apiClient.get(`/widget-types/${widgetType}/schema`);
+    const response = await apiClient.get(
+      `/widget-types/${widgetType.replace(/_/g, "-")}/schema`
+    );
     return response.data;
   },
 

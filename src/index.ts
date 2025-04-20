@@ -23,7 +23,7 @@ const server = new McpServer({
 // Get widget data by ID
 server.tool(
   "commonninja_get_widget",
-  "Get widget data by ID before updating widget data.",
+  "Get widget data by ID before updating widget data for a reference.",
   {
     widgetId: z.string(),
   },
@@ -58,7 +58,7 @@ server.tool(
 // Update widget data
 server.tool(
   "commonninja_update_widget",
-  "Merge current widget data with new partial widget data. For arrays, always return the new array.",
+  "Merge current widget data with new partial widget data. `nextWidgetData` should be only the fields or sub-objects that are being updated. For arrays, always return the new array.",
   {
     widgetId: z.string(),
     currentWidgetData: z.object({}).passthrough(),

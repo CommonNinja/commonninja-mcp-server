@@ -23,7 +23,7 @@ const server = new McpServer({
 // Get widget data by ID
 server.tool(
   "commonninja_get_widget",
-  "Get widget data by ID",
+  "Get widget data by ID before updating widget data.",
   {
     widgetId: z.string(),
   },

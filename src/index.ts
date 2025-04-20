@@ -93,6 +93,34 @@ server.tool(
   }
 );
 
+// Get widget editor URL
+server.tool(
+  "commonninja_get_widget_editor_url",
+  "Get the editor URL for a widget",
+  { widgetId: z.string() },
+  async ({ widgetId }) => {
+    const editorUrl = await CommonNinjaApi.getWidgetEditorUrl(widgetId);
+
+    return {
+      content: [{ type: "text", text: editorUrl }],
+    };
+  }
+);
+
+// Get widget embed code
+server.tool(
+  "commonninja_get_widget_embed_code",
+  "Get the embed code for a widget",
+  { widgetId: z.string() },
+  async ({ widgetId }) => {
+    const embedCode = await CommonNinjaApi.getWidgetEmbedCode(widgetId);
+
+    return {
+      content: [{ type: "text", text: embedCode }],
+    };
+  }
+);
+
 // List all widgets
 server.tool(
   "commonninja_list_widgets",

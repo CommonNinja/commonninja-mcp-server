@@ -142,4 +142,15 @@ export const CommonNinjaApi = {
     });
     return response.data;
   },
+
+  // Get widget editor URL
+  async getWidgetEditorUrl(widgetId: string) {
+    const response = await apiClient.get(`/widgets/${widgetId}/editor`);
+    return response.data;
+  },
+
+  async getWidgetEmbedCode(widgetId: string) {
+    const response = await apiClient.get(`/widgets/${widgetId}/embed-code`);
+    return response.data;
+  },
 };

@@ -11,8 +11,7 @@ import merge from "lodash/merge.js";
 dotenv.config();
 
 const commonninjaAccountAccessKey =
-  process.env.COMMONNINJA_ACCOUNT_ACCESS_TOKEN ||
-  "";
+  process.env.COMMONNINJA_ACCOUNT_ACCESS_TOKEN || "";
 const cnApiBaseUrl = "https://api.commoninja.com/platform/api/v1";
 
 // Create server instance
@@ -26,7 +25,7 @@ const server = new McpServer({
 });
 
 server.tool(
-  "get-widget",
+  "commonninja_get_widget",
   "Get widget data by ID",
   {
     widgetId: z.string(),
@@ -42,7 +41,7 @@ server.tool(
 
     return {
       content: [
-        { type: 'text', text: `Widget Type: ${type} \n WidgetData: \n` },
+        { type: "text", text: `Widget Type: ${type} \n WidgetData: \n` },
         { type: "text", text: JSON.stringify(widgetData) },
       ],
     };
@@ -50,7 +49,7 @@ server.tool(
 );
 
 server.tool(
-  "get-widget-schema",
+  "commonninja_get_widget_schema",
   "Get widget schema by type before updating widget data",
   {
     widgetType: z.string(),
@@ -72,7 +71,7 @@ server.tool(
 );
 
 server.tool(
-  "update-widget",
+  "commonninja_update_widget",
   "Merge current widget data with new partial widget data",
   {
     widgetId: z.string(),
@@ -88,16 +87,16 @@ server.tool(
     // delete nextWidgetData.localization
     // delete nextWidgetData.deviceRewrites
     // delete nextWidgetData.colorScheme
-    delete nextWidgetData.integrations
-    delete nextWidgetData.notifications
-    delete nextWidgetData.displayRules
-    delete nextWidgetData.emailSettings
-    delete nextWidgetData.payments
-    
+    delete nextWidgetData.integrations;
+    delete nextWidgetData.notifications;
+    delete nextWidgetData.displayRules;
+    delete nextWidgetData.emailSettings;
+    delete nextWidgetData.payments;
+
     // Deep clone new widget data with current widget data using lodash
     const mergedWidgetData = merge({}, currentWidgetData, nextWidgetData);
 
-    console.log("mergedWidgetData", mergedWidgetData);
+    // console.log("mergedWidgetData", mergedWidgetData);
 
     // Note: In a production implementation, we would:
     // 1. Get the widget schema based on widget type
@@ -121,44 +120,44 @@ server.tool(
 
 // SSE Server
 
-const transports: {[sessionId: string]: SSEServerTransport} = {};
-const app = express();
+// const transports: {[sessionId: string]: SSEServerTransport} = {};
+// const app = express();
 
-app.get("/sse", async (_: Request, res: Response) => {
-  const transport = new SSEServerTransport('/messages', res);
-  transports[transport.sessionId] = transport;
-  res.on("close", () => {
-    delete transports[transport.sessionId];
-  });
-  await server.connect(transport);
-});
+// app.get("/sse", async (_: Request, res: Response) => {
+//   const transport = new SSEServerTransport('/messages', res);
+//   transports[transport.sessionId] = transport;
+//   res.on("close", () => {
+//     delete transports[transport.sessionId];
+//   });
+//   await server.connect(transport);
+// });
 
-app.post("/messages", async (req: Request, res: Response) => {
-  const sessionId = req.query.sessionId as string;
-  const transport = transports[sessionId];
-  if (transport) {
-    await transport.handlePostMessage(req, res);
-  } else {
-    res.status(400).send('No transport found for sessionId');
-  }
-});
+// app.post("/messages", async (req: Request, res: Response) => {
+//   const sessionId = req.query.sessionId as string;
+//   const transport = transports[sessionId];
+//   if (transport) {
+//     await transport.handlePostMessage(req, res);
+//   } else {
+//     res.status(400).send('No transport found for sessionId');
+//   }
+// });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+// const port = process.env.PORT || 3000;
+// app.listen(port, () => {
+//   console.log(`Server running at http://localhost:${port}`);
+// });
 
 // ------------------------------------------------------------------------------------------------
 
 // STDIO Server
 
-// async function main() {
-//   const transport = new StdioServerTransport();
-//   await server.connect(transport);
-//   console.error("Common Ninja MCP Server running on stdio");
-// }
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Common Ninja MCP Server running on stdio");
+}
 
-// main().catch((error) => {
-//   console.error("Fatal error in main():", error);
-//   process.exit(1);
-// });
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  process.exit(1);
+});

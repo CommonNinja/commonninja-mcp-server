@@ -70,3 +70,7 @@ The MCP server is a Node.js application that listens for MCP connections from th
 ### Analytics
 
 - **commonninja_get_widget_analytics** - Get analytics data for a specific widget
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

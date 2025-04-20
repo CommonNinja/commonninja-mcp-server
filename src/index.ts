@@ -83,7 +83,12 @@ server.tool(
         return srcValue;
       }
     };
-    const mergedWidgetData = mergeWith({}, currentWidgetData, nextWidgetData, customMerge);
+    const mergedWidgetData = mergeWith(
+      {},
+      currentWidgetData,
+      nextWidgetData,
+      customMerge
+    );
 
     await CommonNinjaApi.updateWidget(widgetId, mergedWidgetData);
 
@@ -376,6 +381,46 @@ server.tool(
         },
         { type: "text", text: JSON.stringify(analytics, null, 2) },
       ],
+    };
+  }
+);
+
+server.tool(
+  "commonninja_links",
+  "Get common platform links",
+  {
+    type: z
+      .enum([
+        "dashboard",
+        "account",
+        "billing",
+        "feature-requests",
+        "projects",
+        "project-management",
+        "website",
+        "contact",
+        "support",
+        "help-center",
+      ])
+      .optional()
+      .default("website"),
+  },
+  async ({ type }) => {
+    const links = {
+      dashboard: "https://www.commoninja.com/dashboard",
+      account: "https://www.commoninja.com/account",
+      billing: "https://www.commoninja.com/billing",
+      "feature-requests": "https://www.commoninja.com/feature-requests",
+      projects: "https://www.commoninja.com/projects",
+      "project-management": "https://www.commoninja.com/project/{PROJECT_ID}",
+      website: "https://www.commoninja.com",
+      contact: "https://www.commoninja.com/contact-us",
+      support: "https://www.commoninja.com/contact-us",
+      "help-center": "https://help.commoninja.com",
+    };
+
+    return {
+      content: [{ type: "text", text: `Link to ${type}: ${links[type]}` }],
     };
   }
 );

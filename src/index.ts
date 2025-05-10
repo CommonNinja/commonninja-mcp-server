@@ -114,11 +114,6 @@ server.tool(
       allErrors: true,
       // verbose: true,
     });
-    console.log(
-      "Validating widget data against schema:",
-      widgetSchema,
-      widgetData
-    );
 
     // Remove allOf from the schema
     delete widgetSchema.allOf;

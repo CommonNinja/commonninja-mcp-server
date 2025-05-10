@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
 import express, { Request, Response } from "express";
+import Ajv from "ajv";
 import dotenv from "dotenv";
 import mergeWith from "lodash/mergeWith.js";
 import { CommonNinjaApi } from "./services/commonNinjaApi.js";
@@ -94,6 +95,44 @@ server.tool(
 
     return {
       content: [{ type: "text", text: "Widget updated successfully" }],
+    };
+  }
+);
+
+// Validate JSON schema before update or create widget
+server.tool(
+  "commonninja_validate_json_schema",
+  "Validate JSON schema before updating or creating a widget with the updated widget data and schema",
+  {
+    widgetData: z.object({}).passthrough(),
+    widgetSchema: z.object({}).passthrough(),
+  },
+  async ({ widgetData = {}, widgetSchema = {} }) => {
+    // Validate the widget data against the schema
+    // @ts-ignore
+    const ajv = new Ajv({
+      allErrors: true,
+      // verbose: true,
+    });
+    console.log(
+      "Validating widget data against schema:",
+      widgetSchema,
+      widgetData
+    );
+
+    // Remove allOf from the schema
+    delete widgetSchema.allOf;
+
+    const validate = ajv.compile(widgetSchema);
+    const valid = validate({ data: widgetData });
+
+    if (!valid) {
+      const error = validate.errors?.[0];
+      throw new Error(`Invalid widget data: ${error?.message}`);
+    }
+
+    return {
+      content: [{ type: "text", text: "Widget data is valid" }],
     };
   }
 );

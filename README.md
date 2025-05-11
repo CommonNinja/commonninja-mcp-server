@@ -1,6 +1,6 @@
 # Common Ninja MCP Server
 
-A Model Context Protocol (MCP) server implementation for Common Ninja widgets, allowing AI assistants to interact with the Common Ninja API.
+A Model Context Protocol (MCP) server implementation for Common Ninja Widgets+, allowing AI assistants to interact with the Common Ninja API.
 
 ## Prerequisites
 
